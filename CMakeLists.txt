@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(frasier_utilities)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -12,7 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
   control_msgs
   geometry_msgs
   rospy
+  roscpp
   trajectory_msgs
+  roslib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -118,14 +120,13 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/frasier_utilities.cpp
-# )
+add_library(arm_client src/${PROJECT_NAME}/arm_client.cpp)
+target_link_libraries(arm_client ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -135,7 +136,8 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/frasier_utilities_node.cpp)
+add_executable(yaml_test src/yaml_test.cpp)
+target_link_libraries(yaml_test ${catkin_LIBRARIES} yaml-cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

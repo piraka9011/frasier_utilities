@@ -1,6 +1,4 @@
-top_grasp:
-  arm_lift:
-  arm_flex:
-  arm_roll:
-  wrist_flex:
-  wrist_roll:
+# arm_lift, arm_flex, arm_roll, wrist_flex, wrist_roll
+top_grasp: [0.487, -2.541, -0.050, -1.210, 0.160]
+
+
