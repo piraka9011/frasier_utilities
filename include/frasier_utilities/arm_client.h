@@ -1,5 +1,5 @@
-#ifndef FRASIER_ARM_CLIENT_H
-#define FRASIER_ARM_CLIENT_H
+#ifndef FRASIER_UTILITIES_ARM_CLIENT_H
+#define FRASIER_UTILITIES_ARM_CLIENT_H
 
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -37,4 +37,4 @@ public:
 };
 
 
-#endif //PROJECT_ARM_CLIENT_H
+#endif //FRASIER_UTILITIES_ARM_CLIENT_H

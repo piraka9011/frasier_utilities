@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   roscpp
   trajectory_msgs
+  tmc_msgs
   roslib
 )
 
@@ -125,8 +126,11 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(arm_client src/${PROJECT_NAME}/arm_client.cpp)
+add_library(arm_client src/arm_client.cpp)
 target_link_libraries(arm_client ${catkin_LIBRARIES})
+
+add_library(speech_client src/speech_client.cpp)
+target_link_libraries(speech_client ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -138,6 +142,9 @@ target_link_libraries(arm_client ${catkin_LIBRARIES})
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(yaml_test src/yaml_test.cpp)
 target_link_libraries(yaml_test ${catkin_LIBRARIES} yaml-cpp)
+
+add_executable(test_speech_client scripts/test_speech_client.cpp)
+target_link_libraries(test_speech_client ${catkin_LIBRARIES} speech_client)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

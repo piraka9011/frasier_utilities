@@ -1,6 +1,7 @@
 #include "frasier_utilities/arm_client.h"
 
 ArmClient::ArmClient(ros::NodeHandle n, bool debug = true) :
+    nh_(n),
     arm_cli_(ARM_CLIENT_TOPIC, true),
     debug_(debug)
 {
