@@ -12,7 +12,7 @@ from hsr_constants import *
 import yaml
 
 
-class HeadClient(object):
+class Head(object):
     def __init__(self):
         # Client
         self.head_client = actionlib.SimpleActionClient(HEAD_CLIENT_TOPIC, FollowJointTrajectoryAction)
@@ -22,9 +22,9 @@ class HeadClient(object):
         # Check
         head_client_running = self.head_client.wait_for_server(rospy.Duration(2))
         if head_client_running:
-            print "HEAD CLIENT: Head controller initialized."
+            print("HEAD CLIENT: Head controller initialized.")
         else:
-            print "HEAD CLIENT: Head controller is NOT initialized!"
+            print("HEAD CLIENT: Head controller is NOT initialized!")
 
         # Setup
         self.head_goal = FollowJointTrajectoryGoal()

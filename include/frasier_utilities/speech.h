@@ -1,5 +1,5 @@
-#ifndef FRASIER_UTILITIES_SPEECH_CLIENT_H
-#define FRASIER_UTILITIES_SPEECH_CLIENT_H
+#ifndef FRASIER_UTILITIES_SPEECH_H
+#define FRASIER_UTILITIES_SPEECH_H
 #include <ros/ros.h>
 #include <ros/package.h>
 
@@ -10,14 +10,14 @@
 #include <iostream>
 #include <frasier_utilities/hsr_constants.h>
 
-class SpeechClient {
+class Speech {
 private:
     ros::NodeHandle nh_;
     actionlib::SimpleActionClient<tmc_msgs::TalkRequestAction> speech_cli_;
     bool debug_;
 
 public:
-    SpeechClient(ros::NodeHandle n, bool debug = true);
+    Speech(ros::NodeHandle n, bool debug = true);
     void sendCurrentGoal(bool wait = true);
     void setSentence(std::string sentence);
     void say(std::string sentence, bool wait = true);
@@ -26,4 +26,4 @@ public:
 
 
 };
-#endif //FRASIER_UTILITIES_SPEECH_CLIENT_H
+#endif //FRASIER_UTILITIES_SPEECH_H

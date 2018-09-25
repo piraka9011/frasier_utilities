@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import rospy
-from frasier_utilities.head_client import HeadClient
+from frasier_utilities.head import Head
 
 try:
     rospy.init_node('head_test')
-    h = HeadClient()
+    h = Head()
     h.reset()
     h.goto_position('tri_demo', 2)
 except KeyboardInterrupt:

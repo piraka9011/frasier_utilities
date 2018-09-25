@@ -1,6 +1,6 @@
-#include "frasier_utilities/arm_client.h"
+#include "frasier_utilities/arm.h"
 
-ArmClient::ArmClient(ros::NodeHandle n, bool debug = true) :
+Arm::Arm(ros::NodeHandle n, bool debug = true) :
     nh_(n),
     arm_cli_(ARM_CLIENT_TOPIC, true),
     debug_(debug)
@@ -24,19 +24,19 @@ ArmClient::ArmClient(ros::NodeHandle n, bool debug = true) :
 
 }
 
-void ArmClient::sendCurrentGoal(bool wait = true) {
+void Arm::sendCurrentGoal(bool wait = true) {
     arm_cli_.sendGoal(arm_goal);
     if (wait)
         arm_cli_.waitForResult(ros::Duration(CONTROLLER_TIMEOUT));
 }
 
-void ArmClient::sendGoal(control_msgs::FollowJointTrajectoryGoal goal, bool wait = true) {
+void Arm::sendGoal(control_msgs::FollowJointTrajectoryGoal goal, bool wait = true) {
     arm_cli_.sendGoal(goal);
     if (wait)
         arm_cli_.waitForResult(ros::Duration(CONTROLLER_TIMEOUT));
 }
 
-void ArmClient::gotoPosition(std::vector<double> position) {
+void Arm::gotoPosition(std::vector<double> position) {
     for (int i = 0; i < position.size(); i++) {
         arm_traj.points[0].positions[i] = position[i];
     }
@@ -44,7 +44,7 @@ void ArmClient::gotoPosition(std::vector<double> position) {
     sendCurrentGoal();
 }
 
-void ArmClient::gotoKnownPosition(std::string position) {
+void Arm::gotoKnownPosition(std::string position) {
     std::vector<double> positions = arm_config_[position].as<std::vector<double > >();
     for (int i = 0; i < positions.size(); i++) {
         arm_traj.points[0].positions[i] = positions[i];

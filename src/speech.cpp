@@ -1,6 +1,6 @@
-#include <frasier_utilities/speech_client.h>
+#include <frasier_utilities/speech.h>
 
-SpeechClient::SpeechClient(ros::NodeHandle n, bool debug) :
+Speech::Speech(ros::NodeHandle n, bool debug) :
 	nh_(n),
 	speech_cli_(SPEECH_CLIENT_TOPIC, true),
 	debug_(debug)
@@ -19,18 +19,18 @@ SpeechClient::SpeechClient(ros::NodeHandle n, bool debug) :
 	voice_goal_.data = voice_msg_;
 }
 
-void SpeechClient::sendCurrentGoal(bool wait) {
+void Speech::sendCurrentGoal(bool wait) {
 	speech_cli_.sendGoal(voice_goal_);
 	if (wait)
 		speech_cli_.waitForResult();
 }
 
-void SpeechClient::setSentence(std::string sentence) {
+void Speech::setSentence(std::string sentence) {
 	voice_msg_.sentence = sentence;
 	voice_goal_.data = voice_msg_;
 }
 
-void SpeechClient::say(std::string sentence, bool wait) {
+void Speech::say(std::string sentence, bool wait) {
 	setSentence(sentence);
 	sendCurrentGoal(wait);
 }

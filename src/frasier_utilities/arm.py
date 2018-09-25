@@ -8,7 +8,7 @@ import yaml
 from rospkg import RosPack
 
 
-class ArmClient(object):
+class Arm(object):
     def __init__(self):
         # Client
         self.arm_client = actionlib.SimpleActionClient(ARM_CLIENT_TOPIC, FollowJointTrajectoryAction)
@@ -16,9 +16,9 @@ class ArmClient(object):
         # Check
         arm_client_running = self.arm_client.wait_for_server(rospy.Duration(2))
         if arm_client_running:
-            print "ARM CLIENT: Arm controller initialized."
+            print("ARM CLIENT: Arm controller initialized.")
         else:
-            print "ARM CLIENT: Arm controller is NOT initialized!"
+            print("ARM CLIENT: Arm controller is NOT initialized!")
 
         # Setup
         self.arm_goal = FollowJointTrajectoryGoal()

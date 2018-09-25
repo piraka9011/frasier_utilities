@@ -1,5 +1,5 @@
-#ifndef FRASIER_UTILITIES_ARM_CLIENT_H
-#define FRASIER_UTILITIES_ARM_CLIENT_H
+#ifndef FRASIER_UTILITIES_ARM_H
+#define FRASIER_UTILITIES_ARM_H
 
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -13,7 +13,7 @@
 #include <iostream>
 #include <frasier_utilities/hsr_constants.h>
 
-class ArmClient
+class Arm
 {
 private:
     ros::NodeHandle nh_;
@@ -24,7 +24,7 @@ private:
     YAML::Node arm_config_;
 
 public:
-    ArmClient(ros::NodeHandle n, bool debug);
+    Arm(ros::NodeHandle n, bool debug);
     void gotoKnownPosition(std::string position);
     void gotoPosition(std::vector<double> position);
     void sendGoal(control_msgs::FollowJointTrajectoryGoal goal, bool wait);
@@ -37,4 +37,4 @@ public:
 };
 
 
-#endif //FRASIER_UTILITIES_ARM_CLIENT_H
+#endif //FRASIER_UTILITIES_ARM_H
