@@ -13,6 +13,7 @@ class Speech(object):
         # Voice Msg
         self.voice_pub = rospy.Publisher(SPEECH_TOPIC, Voice, queue_size=10)
         self._speech_cli = actionlib.SimpleActionClient(SPEECH_CLIENT_TOPIC, TalkRequestAction)
+        rospy.loginfo("SPEECH CLIENT: Waiting for speech action server...")
         speech_is_running = self._speech_cli.wait_for_server(rospy.Duration(2))
 
         if speech_is_running:
@@ -26,15 +27,15 @@ class Speech(object):
         self.voice_msg.sentence = 'Start'
         self.goal = TalkRequestGoal()
 
-    def sendCurrentGoal(self, blocking=True):
+    def send_current_goal(self, blocking=True):
         self._speech_cli.send_goal(self.goal)
         if blocking:
             self._speech_cli.wait_for_result()
 
-    def setSentence(self, text):
+    def set_sentence(self, text):
         self.voice_msg.sentence = text
         self.goal.data = self.voice_msg
 
     def say(self, text, blocking=True):
-        self.setSentence(text)
-        self.sendCurrentGoal(blocking)
+        self.set_sentence(text)
+        self.send_current_goal(blocking)
