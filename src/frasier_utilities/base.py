@@ -74,6 +74,9 @@ class Base(object):
         return self.send_goal()
 
     def move_to_location(self, requested_location):
+        if type(requested_location) is not str:
+            raise AttributeError('move_to_location() expects a location string.')
+
         if requested_location in self.locations.keys():
             coords = self.locations[requested_location]
             self.set_goal_position(Point(coords['x'], coords['y'], 0))
