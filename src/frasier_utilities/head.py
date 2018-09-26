@@ -19,9 +19,9 @@ class Head(object):
         rospy.loginfo("HEAD CLIENT: Waiting for head action server...")
         head_client_running = self.head_client.wait_for_server(rospy.Duration(2))
         if head_client_running:
-            print("HEAD CLIENT: Head controller initialized.")
+            rospy.loginfo("HEAD CLIENT: Head controller initialized.")
         else:
-            print("HEAD CLIENT: Head controller is NOT initialized!")
+            rospy.loginfo("HEAD CLIENT: Head controller is NOT initialized!")
 
         # Setup
         self.head_goal = FollowJointTrajectoryGoal()
