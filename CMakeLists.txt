@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   trajectory_msgs
   tmc_msgs
+  tmc_control_msgs
   roslib
 )
 
@@ -132,6 +133,9 @@ target_link_libraries(arm ${catkin_LIBRARIES})
 add_library(speech src/speech.cpp)
 target_link_libraries(speech ${catkin_LIBRARIES})
 
+add_library(gripper src/gripper.cpp)
+target_link_libraries(gripper ${catkin_LIBRARIES})
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -145,6 +149,9 @@ target_link_libraries(yaml_test ${catkin_LIBRARIES} yaml-cpp)
 
 add_executable(test_speech_client scripts/test_speech_client.cpp)
 target_link_libraries(test_speech_client ${catkin_LIBRARIES} speech)
+
+add_executable(test_gripper_client scripts/test_gripper_client.cpp)
+target_link_libraries(test_gripper_client ${catkin_LIBRARIES} gripper)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
