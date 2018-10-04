@@ -8,11 +8,11 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  rospy
+  roscpp
   actionlib
   control_msgs
   geometry_msgs
-  rospy
-  roscpp
   trajectory_msgs
   tmc_msgs
   tmc_control_msgs
@@ -109,9 +109,10 @@ catkin_python_setup()
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES frasier_utilities
-#  CATKIN_DEPENDS actionlib control_msgs geometry_msgs rospy trajectory_msgs
+  INCLUDE_DIRS include
+  LIBRARIES arm speech gripper
+  CATKIN_DEPENDS roscpp rospy actionlib control_msgs 
+  geometry_msgs tmc_msgs tmc_control_msgs trajectory_msgs
 #  DEPENDS system_lib
 )
 
