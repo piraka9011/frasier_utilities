@@ -58,6 +58,7 @@
   <depend>tmc_msgs</depend>
   <depend>tmc_control_msgs</depend>
   <depend>trajectory_msgs</depend>
+  <depend>std_msgs</depend>
   <depend>yaml-cpp</depend>
   
   <!-- The export tag contains other, unspecified, tags -->

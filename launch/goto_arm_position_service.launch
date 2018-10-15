@@ -1,0 +1,3 @@
+<launch>
+    <node name="goto_arm_position_server" pkg="frasier_utilities" type="goto_arm_position_srv.py"/>
+</launch>

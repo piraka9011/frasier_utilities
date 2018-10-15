@@ -1,5 +1,6 @@
 # Arm
 ARM_CLIENT_TOPIC = '/hsrb/arm_trajectory_controller/follow_joint_trajectory'
+ARM_STATE_TOPIC = '/hsrb/arm_trajectory_controller/state'
 ARM_JOINTS = ['arm_lift_joint', 'arm_flex_joint', 'arm_roll_joint', 'wrist_flex_joint', 'wrist_roll_joint']
 # Head
 HEAD_CLIENT_TOPIC = '/hsrb/head_trajectory_controller/follow_joint_trajectory'
@@ -14,5 +15,6 @@ SPEECH_CLIENT_TOPIC = '/talk_request_action'
 MOVE_BASE_TOPIC = '/move_base/move'
 OMNI_BASE_CLIENT_TOPIC = '/hsrb/omni_base_controller/follow_joint_trajectory'
 OMNI_BASE_JOINTS = ['odom_x', 'odom_y', 'odom_t']
+CURRENT_POSE_TOPIC = '/global_pose'
 # Gripper
 GRIPPER_CLIENT_TOPIC = '/hsrb/gripper_controller/grasp'
