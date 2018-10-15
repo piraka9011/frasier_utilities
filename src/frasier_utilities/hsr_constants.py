@@ -16,5 +16,6 @@ MOVE_BASE_TOPIC = '/move_base/move'
 OMNI_BASE_CLIENT_TOPIC = '/hsrb/omni_base_controller/follow_joint_trajectory'
 OMNI_BASE_JOINTS = ['odom_x', 'odom_y', 'odom_t']
 CURRENT_POSE_TOPIC = '/global_pose'
+BASE_VELOCITY_TOPIC = '/hsrb/command_velocity'
 # Gripper
 GRIPPER_CLIENT_TOPIC = '/hsrb/gripper_controller/grasp'

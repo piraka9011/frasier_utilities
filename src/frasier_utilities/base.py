@@ -4,11 +4,14 @@ import rospy
 from rospkg import RosPack
 from actionlib import SimpleActionClient, GoalStatus
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-from geometry_msgs.msg import Point, Quaternion, PoseStamped
+from geometry_msgs.msg import Point, Quaternion, PoseStamped, Twist
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
-from hsr_constants import MOVE_BASE_TOPIC, CURRENT_POSE_TOPIC
+from hsr_constants import MOVE_BASE_TOPIC, CURRENT_POSE_TOPIC, BASE_VELOCITY_TOPIC
 
+from threading import Thread
+import time
+from collections import OrderedDict
 from warnings import warn
 from yaml import load, dump, YAMLError
 
@@ -27,6 +30,9 @@ class Base(object):
         # Current Pose
         rospy.Subscriber(CURRENT_POSE_TOPIC, PoseStamped, self._pose_cb)
         self.current_pose = PoseStamped()
+
+        # Velocity
+        self.vel_pub = rospy.Publisher(BASE_VELOCITY_TOPIC, Twist, queue_size=10)
 
         # Default Goal init
         self.move_goal = MoveBaseGoal()
@@ -86,7 +92,6 @@ class Base(object):
         # Send built in goal, otherwise send passed goal
         if goal is None:
             self.move_goal.target_pose.header.stamp = rospy.Time.now()
-            print(self.move_goal)
             self.move_client.send_goal(self.move_goal)
         else:
             self.move_client.send_goal(goal)
@@ -138,6 +143,7 @@ class Base(object):
             return False
 
     def move_to_relative(self, x, y, yaw):
+        self.current_pose = rospy.wait_for_message(CURRENT_POSE_TOPIC, PoseStamped)
         # Get the current pose euler to add
         q = self.current_pose.pose.orientation
         _, _, rel_yaw = euler_from_quaternion((q.x, q.y, q.z, q.w))
@@ -150,4 +156,28 @@ class Base(object):
         self._set_goal_orientation(Quaternion(*relative_quat))
         self.move_goal.target_pose.header.frame_id = 'map'
         self._send_goal()
+
+    def move_to_rel_vel(self, x, y, theta, lin_v=0.1, ang_v=0.1):
+        time_dict = {}
+        time_dict['x'] = (x / lin_v)
+        time_dict['y'] = (y / lin_v)
+        time_dict['t'] = (theta / ang_v)
+        time_dict = OrderedDict(sorted(time_dict.items(), key=lambda i: i[1]))
+        vel_msg = Twist()
+        vel_msg.linear.x = lin_v
+        vel_msg.linear.y = lin_v
+        vel_msg.angular.z = ang_v
+        x_finished, y_finished, z_finished = False, False, False
+        for dir, value in time_dict.iteritems():
+            end = value + time.time()
+            while time.time() < end:
+                self.vel_pub(vel_msg)
+            if dir == 'x':
+                vel_msg.linear.x = 0.0
+            elif dir == 'y':
+                vel_msg.linear.y = 0.0
+            elif dir == 'z':
+                vel_msg.angular.z = 0.0
+
+
 
