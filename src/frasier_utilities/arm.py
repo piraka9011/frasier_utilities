@@ -81,6 +81,9 @@ class Arm(object):
         # Assume it succeeded
         return True
 
+    def reset(self):
+        self.goto_position('start', True)
+
     def save_position(self, position_name='default', arm_position=None, save_file=True):
         if arm_position is None:
             self.positions[position_name] = list(self.curr_arm_state_.actual.positions)

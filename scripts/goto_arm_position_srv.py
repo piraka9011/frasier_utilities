@@ -11,7 +11,7 @@ class StoreArmPositionService:
         self.service = rospy.Service('/frasier_utilities/goto_arm_position', StoreArmPosition, self.service_cb)
 
     def service_cb(self, req):
-        result = self.arm.move_to_location(req.position_name)
+        result = self.arm.goto_position(req.position_name)
         return StoreArmPositionResponse(result)
 
 

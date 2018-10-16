@@ -41,7 +41,7 @@ class Base(object):
 
         # Default move_base goal init
         self.move_goal = MoveBaseGoal()
-        self.move_goal.target_pose.header.frame_id = 'odom'
+        self.move_goal.target_pose.header.frame_id = 'map'
         self.timeout = rospy.Duration(30)
 
         # Default traj goal init
@@ -141,6 +141,7 @@ class Base(object):
             raise AttributeError('BASE CLIENT: move_to_location() expects a location string.')
 
         if requested_location in self.locations:
+            rospy.loginfo("BASE CLIENT: Received {} location".format(requested_location))
             coords = self.locations[requested_location]
             self._set_goal_position(Point(coords['x'], coords['y'], 0))
             self._set_goal_orientation(Quaternion(0, 0, coords['z'], coords['w']))

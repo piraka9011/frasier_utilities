@@ -15,7 +15,7 @@ import yaml
 class Head(object):
     def __init__(self):
         self.head_client = SimpleActionClient(HEAD_CLIENT_TOPIC, FollowJointTrajectoryAction)
-        self.head_state = rospy.Subscriber(HEAD_STATE_TOPIC, JointTrajectoryControllerState, self.update_state)
+        self.head_state = rospy.Subscriber(HEAD_STATE_TOPIC, JointTrajectoryControllerState, self._update_state)
         rospy.loginfo("HEAD CLIENT: Waiting for head action server...")
         head_client_running = self.head_client.wait_for_server(rospy.Duration(2))
         if head_client_running:
@@ -33,17 +33,46 @@ class Head(object):
 
         # Pre-def. positions
         r = RosPack()
-        fpath = r.get_path('frasier_utilities') + '/config/head_configs.yaml'
-        with open(fpath, 'r') as stream:
+        self.yaml_filename = r.get_path('frasier_utilities') + '/config/head_configs.yaml'
+
+        # Read
+        with open(self.yaml_filename, 'r') as outfile:
             try:
-                self.locations = yaml.load(stream)
+                self.locations = yaml.load(outfile)
             except yaml.YAMLError as exc:
                 rospy.logwarn("HEAD CLIENT: Yaml Exception Caught: {}".format(exc))
 
         rospy.logdebug("HEAD CLIENT: Config: {}".format(self.locations))
 
-    def update_state(self, msg):
+    def _save_yaml_file(self):
+        with open(self.yaml_filename, 'w') as outfile:
+            yaml.dump(self.locations, outfile, default_flow_style=False)
+
+    def _read_yaml_file(self):
+        with open(self.yaml_filename, 'r') as outfile:
+            try:
+                self.locations = yaml.load(outfile)
+            except yaml.YAMLError as e:
+                print e
+
+    def _update_state(self, msg):
         self.current_tilt, self.current_pan = msg.actual.positions
+
+    def save_position(self, name=None, pan=None, tilt=None):
+        # Handle all possible scenarios
+        if name is None:
+            if pan is None or tilt is None:
+                self.locations['default'] = [self.current_pan, self.current_tilt]
+            else:
+                self.locations['default'] = [pan, tilt]
+        else:
+            if pan is None or tilt is None:
+                self.locations[name] = [self.current_pan, self.current_tilt]
+            else:
+                self.locations[name] = [pan, tilt]
+
+        self._save_yaml_file()
+        return True
 
     def send_goal(self, head_goal=None, blocking=True):
         if head_goal is None:
@@ -88,7 +117,7 @@ class Head(object):
 
     # Pan: [-3.84,1.75] [right,left]
     # Tilt: [-1.57,0.52] [down,up]
-    def move_to_position(self, pan=None, tilt=None, velocities=None, move_time=2, blocking=True):
+    def move_to_position(self, pan=None, tilt=None, velocities=None, move_time=1, blocking=True):
         if pan is None:
             pan = self.current_pan
         if tilt is None:
