@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find frasier_utilities)/launch/goto_arm_position_service.launch"/>
+    <include file="$(find frasier_utilities)/launch/save_head_position_service.launch"/>
+    <include file="$(find frasier_utilities)/launch/save_arm_position_service.launch"/>
+</launch>
