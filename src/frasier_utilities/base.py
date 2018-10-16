@@ -4,15 +4,14 @@ import rospy
 from rospkg import RosPack
 from actionlib import SimpleActionClient, GoalStatus
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal, JointTolerance
+from trajectory_msgs.msg import JointTrajectoryPoint, JointTrajectory
 from geometry_msgs.msg import Point, Quaternion, PoseStamped, Twist
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
-from hsr_constants import MOVE_BASE_TOPIC, CURRENT_POSE_TOPIC, BASE_VELOCITY_TOPIC
+from hsr_constants import *
 
-from threading import Thread
 import time
-from collections import OrderedDict
-from warnings import warn
 from yaml import load, dump, YAMLError
 
 
@@ -27,6 +26,12 @@ class Base(object):
         else:
             rospy.loginfo("BASE CLIENT: Base controller is NOT initialized!")
 
+        # Omni Client
+        self.omni_client = SimpleActionClient(OMNI_BASE_CLIENT_TOPIC,
+                                              FollowJointTrajectoryAction)
+        omni_client_running = self.omni_client.wait_for_server(rospy.Duration(3))
+
+
         # Current Pose
         rospy.Subscriber(CURRENT_POSE_TOPIC, PoseStamped, self._pose_cb)
         self.current_pose = PoseStamped()
@@ -34,39 +39,40 @@ class Base(object):
         # Velocity
         self.vel_pub = rospy.Publisher(BASE_VELOCITY_TOPIC, Twist, queue_size=10)
 
-        # Default Goal init
+        # Default move_base goal init
         self.move_goal = MoveBaseGoal()
         self.move_goal.target_pose.header.frame_id = 'odom'
         self.timeout = rospy.Duration(30)
 
+        # Default traj goal init
+        # Tolerances
+        self.tolx = JointTolerance(name='odom_x', position=0.1)
+        self.toly = JointTolerance(name='odom_y', position=0.1)
+        self.tolt = JointTolerance(name='odom_t', position=0.1)
+        self.traj_goal = FollowJointTrajectoryGoal()
+        self.traj_goal.goal_tolerance = [self.tolx, self.toly, self.tolt]
+        self.traj_goal.path_tolerance = [self.tolx, self.toly, self.tolt]
+        self.traj_goal.trajectory.joint_names = OMNI_BASE_JOINTS
+        self.traj_goal.trajectory.header.frame_id = 'map'
+
         r = RosPack()
         pkg_path = r.get_path('frasier_utilities')
 
-        # ============================================================================================
-        # Pre-def. positions
-        warn("Old frasier locations object map and nav_client will be deprecated!")
-        locations_path = pkg_path + '/config/locations.yaml'
-        lo_map_path = pkg_path + '/config/location_object_map.yaml'
-        with open(locations_path, 'r') as loc_stream, open(lo_map_path, 'r') as lo_stream:
-            try:
-                self.locations = load(loc_stream)
-                self.location_object_map = load(lo_stream)
-            except YAMLError as e:
-                rospy.logwarn("BASE CLIENT: Yaml Exception Caught: {}".format(e))
-
-        rospy.logdebug("BASE CLIENT: Config: {}\n{}".format(self.locations, self.location_object_map))
-        # ============================================================================================
-
         self.yaml_filename = pkg_path + '/config/wrs_map.yaml'
+        with open(self.yaml_filename, 'r') as outfile:
+            try:
+                self.locations = load(outfile)
+            except YAMLError as e:
+                print e
 
     def _save_yaml_file(self):
         with open(self.yaml_filename, 'w') as outfile:
             dump(self.locations, outfile, default_flow_style=False)
 
     def read_yaml_file(self):
-        with open(self.yaml_filename, 'r') as f:
+        with open(self.yaml_filename, 'r') as outfile:
             try:
-                self.locations = load(f)
+                self.locations = load(outfile)
             except YAMLError as e:
                 print e
 
@@ -78,15 +84,6 @@ class Base(object):
 
     def _set_goal_orientation(self, q):
         self.move_goal.target_pose.pose.orientation = q
-
-    def _set_goal_from_location(self, pos):
-        goal = MoveBaseGoal()
-        goal.target_pose.pose.position.x = pos['x']
-        goal.target_pose.pose.position.y = pos['y']
-        goal.target_pose.pose.orientation.z = pos['z']
-        goal.target_pose.pose.orientation.w = pos['w']
-        goal.target_pose.header.frame_id = 'map'
-        return goal
 
     def _send_goal(self, goal=None, blocking=True):
         # Send built in goal, otherwise send passed goal
@@ -115,69 +112,46 @@ class Base(object):
         # Assume it succeeded
         return True
 
-    def move_to_coordinate(self, x, y, t):
-        self._set_goal_position(Point(x, y, 0))
-        quat = quaternion_from_euler(0, 0, t)
-        self._set_goal_orientation(Quaternion(*quat))
-        return self._send_goal()
+    def move_to_relative(self, x, y, t, blocking=True):
+        self.current_pose = rospy.wait_for_message(CURRENT_POSE_TOPIC, PoseStamped)
+        rel_x = self.current_pose.pose.position.x + x
+        rel_y = self.current_pose.pose.position.y + y
+        q = self.current_pose.pose.orientation
+        _, _, yaw = euler_from_quaternion((q.x, q.y, q.z, q.w))
+        rel_t = yaw + t
+        q = quaternion_from_euler(0, 0, rel_t)
+        self.move_goal.target_pose.pose.position = Point(rel_x, rel_y, 0)
+        self.move_goal.target_pose.pose.orientation = Quaternion(*q)
+        self.move_goal.target_pose.header.frame_id = 'map'
+        self._send_goal()
 
-    def move_to_location(self, requested_location):
+        # point = JointTrajectoryPoint()
+        # point.positions = [x, y, t]
+        # point.time_from_start = rospy.Duration(3)
+        # self.traj_goal.trajectory.points = [point]
+        # self.traj_goal.trajectory.header.stamp = rospy.Time.now()
+        # print(self.traj_goal)
+        # if not blocking:
+        #     return self.omni_client.send_goal(self.traj_goal)
+        # else:
+        #     return self.omni_client.send_goal_and_wait(self.traj_goal)
+
+    def move_to_location(self, requested_location, blocking=True):
         if type(requested_location) is not str:
             raise AttributeError('BASE CLIENT: move_to_location() expects a location string.')
 
-        if requested_location in self.locations.keys():
+        if requested_location in self.locations:
             coords = self.locations[requested_location]
             self._set_goal_position(Point(coords['x'], coords['y'], 0))
             self._set_goal_orientation(Quaternion(0, 0, coords['z'], coords['w']))
-            return self._send_goal()
+            return self._send_goal(blocking=blocking)
         else:
             rospy.logwarn("BASE CLIENT: {} does not exist!".format(requested_location))
             return False
 
-    def move_to(self, location):
-        if location in self.locations:
-            self.move_goal = self._set_goal_from_location(self.locations[location])
-            return self._send_goal()
-        else:
-            rospy.logwarn("BASE CLIENT: {} location does not exist!".format(location))
-            return False
-
-    def move_to_relative(self, x, y, yaw):
-        self.current_pose = rospy.wait_for_message(CURRENT_POSE_TOPIC, PoseStamped)
-        # Get the current pose euler to add
-        q = self.current_pose.pose.orientation
-        _, _, rel_yaw = euler_from_quaternion((q.x, q.y, q.z, q.w))
-        relative_yaw = rel_yaw + yaw
-        relative_quat = quaternion_from_euler(0, 0, relative_yaw)
-        # Create the new relative goal
-        self._set_goal_position(Point(self.current_pose.pose.position.x + x,
-                                      self.current_pose.pose.position.y + y,
-                                      0))
-        self._set_goal_orientation(Quaternion(*relative_quat))
-        self.move_goal.target_pose.header.frame_id = 'map'
-        self._send_goal()
-
-    def move_to_rel_vel(self, x, y, theta, lin_v=0.1, ang_v=0.1):
-        time_dict = {}
-        time_dict['x'] = (x / lin_v)
-        time_dict['y'] = (y / lin_v)
-        time_dict['t'] = (theta / ang_v)
-        time_dict = OrderedDict(sorted(time_dict.items(), key=lambda i: i[1]))
+    def move_vel(self, vel=0.1, duration=0.0):
         vel_msg = Twist()
-        vel_msg.linear.x = lin_v
-        vel_msg.linear.y = lin_v
-        vel_msg.angular.z = ang_v
-        x_finished, y_finished, z_finished = False, False, False
-        for dir, value in time_dict.iteritems():
-            end = value + time.time()
-            while time.time() < end:
-                self.vel_pub(vel_msg)
-            if dir == 'x':
-                vel_msg.linear.x = 0.0
-            elif dir == 'y':
-                vel_msg.linear.y = 0.0
-            elif dir == 'z':
-                vel_msg.angular.z = 0.0
-
-
-
+        vel_msg.linear.x = vel
+        end = time.time() + duration
+        while time.time() < end:
+            self.vel_pub.publish(vel_msg)

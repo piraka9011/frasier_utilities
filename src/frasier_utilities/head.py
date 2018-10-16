@@ -36,11 +36,11 @@ class Head(object):
         fpath = r.get_path('frasier_utilities') + '/config/head_configs.yaml'
         with open(fpath, 'r') as stream:
             try:
-                self.positions = yaml.load(stream)
+                self.locations = yaml.load(stream)
             except yaml.YAMLError as exc:
                 rospy.logwarn("HEAD CLIENT: Yaml Exception Caught: {}".format(exc))
 
-        rospy.logdebug("HEAD CLIENT: Config: {}".format(self.positions))
+        rospy.logdebug("HEAD CLIENT: Config: {}".format(self.locations))
 
     def update_state(self, msg):
         self.current_tilt, self.current_pan = msg.actual.positions
@@ -76,18 +76,19 @@ class Head(object):
         else:
             self.head_goal.trajectory.points = [point]
 
-    def goto_position(self, position, time=3, blocking=True):
-        if position in self.positions:
-            self.p.positions = self.positions[position]
+    def move_to_location(self, location, time=3, blocking=True):
+        if location in self.locations:
+            self.p.positions = self.locations[location]
             self.p.time_from_start = rospy.Time(time)
             self.set_point()
-            self.send_goal(blocking=blocking)
+            return self.send_goal(blocking=blocking)
         else:
-            rospy.logwarn("HEAD CLIENT: {} does not exist in the config file!".format(position))
+            rospy.logwarn("HEAD CLIENT: {} does not exist in the config file!".format(location))
+            return False
 
     # Pan: [-3.84,1.75] [right,left]
     # Tilt: [-1.57,0.52] [down,up]
-    def move(self, pan=None, tilt=None, velocities=None, move_time=1, blocking=True):
+    def move_to_position(self, pan=None, tilt=None, velocities=None, move_time=2, blocking=True):
         if pan is None:
             pan = self.current_pan
         if tilt is None:
@@ -100,7 +101,7 @@ class Head(object):
         self.p.velocities = velocities
         self.p.time_from_start = rospy.Time(move_time)
         self.set_point()
-        self.send_goal(blocking=blocking)
+        return self.send_goal(blocking=blocking)
 
     def reset(self):
         rospy.loginfo("HEAD CLIENT: Resetting head.")
@@ -108,4 +109,4 @@ class Head(object):
         self.p.velocities = [0, 0]
         self.p.time_from_start = rospy.Time(2)
         self.set_point()
-        self.send_goal()
+        return self.send_goal()

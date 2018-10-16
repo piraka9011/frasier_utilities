@@ -19,3 +19,7 @@ CURRENT_POSE_TOPIC = '/global_pose'
 BASE_VELOCITY_TOPIC = '/hsrb/command_velocity'
 # Gripper
 GRIPPER_CLIENT_TOPIC = '/hsrb/gripper_controller/grasp'
+GRIPPER_WRENCH_TOPIC = '/hsrb/wrist_wrench/compensated'
+# Camera
+SCREEN_TOPIC = 'hsrb/onboard_web_display'
+RGBD_TOPIC = '/hsrb/head_rgbd_sensor/rgb/image_rect_color'
