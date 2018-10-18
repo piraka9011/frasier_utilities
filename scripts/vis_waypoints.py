@@ -17,8 +17,8 @@ def signal_handler(sig, frame):
 class WaypointVisualizer(object):
 
     def __init__(self):
-        self.waypoint_pub = rospy.Publisher('/frasier_visualization/map_waypoints', MarkerArray, queue_size=10)
-        self.text_pub = rospy.Publisher('/frasier_visualization/map_text', MarkerArray, queue_size=10)
+        self.waypoint_pub = rospy.Publisher('/frasier_visualization/map_waypoints', MarkerArray, queue_size=100)
+        self.text_pub = rospy.Publisher('/frasier_visualization/map_text', MarkerArray, queue_size=100)
         self.arrow_marker_array = MarkerArray()
         self.text_marker_array = MarkerArray()
 
@@ -58,6 +58,8 @@ class WaypointVisualizer(object):
             arrow_marker.pose.orientation.y = 0.0
             arrow_marker.pose.orientation.z = pose['z']
             arrow_marker.pose.orientation.w = pose['w']
+            arrow_list.append(arrow_marker)
+
             # Text
             text_marker = Marker()
             text_marker.header.frame_id = 'map'
@@ -65,19 +67,22 @@ class WaypointVisualizer(object):
             text_marker.id = id
             text_marker.type = text_marker.TEXT_VIEW_FACING
             text_marker.text = location
-            # text_marker.scale.z = 1.0
-            arrow_list.append(arrow_marker)
+            text_marker.scale.z = 0.25
+            text_marker.pose.position.x = pose['x']
+            text_marker.pose.position.y = pose['y']
+            text_marker.pose.position.z = 0.2
+            text_marker.color.a = 1.0
+            text_list.append(text_marker)
 
         self.arrow_marker_array.markers = arrow_list
+        self.text_marker_array.markers = text_list
 
     def publish_markers(self):
         rospy.loginfo("Waypoint Visualizer: Publishing markers")
         while not rospy.is_shutdown():
-            try:
-                self.waypoint_pub.publish(self.arrow_marker_array)
-                rospy.Rate(10).sleep()
-            except KeyboardInterrupt:
-                rospy.signal_shutdown("Ctrl-C")
+            self.waypoint_pub.publish(self.arrow_marker_array)
+            self.text_pub.publish(self.text_marker_array)
+            rospy.Rate(10).sleep()
 
 
 if __name__ == '__main__':
